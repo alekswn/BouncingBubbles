@@ -7,8 +7,8 @@
 #include "bubble.h"
 
 Presenter::Presenter(const QRectF &sceneRect, int initial_bubbles_number)
+    : model(STEP)
 {
-    setSceneRect(sceneRect);
     setItemIndexMethod(QGraphicsScene::NoIndex);
 #ifdef QT_DEBUG
     for (qreal x1 = sceneRect.left(); x1 <= sceneRect.right(); x1+=100 ) addLine(x1,sceneRect.top(),x1,sceneRect.bottom());
@@ -20,7 +20,6 @@ Presenter::Presenter(const QRectF &sceneRect, int initial_bubbles_number)
     animationTimer.setSingleShot(true);
     connect(&animationTimer, &QTimer::timeout, this, &Presenter::advance);
     animationTimer.start(1000/FPS);
-
 }
 
 Presenter::~Presenter()
@@ -29,8 +28,7 @@ Presenter::~Presenter()
 
 void Presenter::addBubble(QPointF position, qreal radius, QPointF velocity)
 {
-    Bubble* bubble = new Bubble(radius, velocity);
-    bubble->setPos(position);
+    Bubble* bubble = new Bubble(this, position, radius, velocity);
     addItem(bubble);
 
     qDebug() << "Adding bubble: " << position << radius << velocity;
@@ -78,4 +76,5 @@ void Presenter::advance() {
     t.start();
     QGraphicsScene::advance();
     animationTimer.start(1000/FPS -t.elapsed());
+    model.start();
 }

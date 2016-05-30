@@ -12,18 +12,22 @@
 #include "bubble.h"
 #include "presenter.h"
 
-Bubble::Bubble(qreal radius, const QPointF &velocity)
-    : radius(radius), vel(velocity), acc(0.0,0.0)
+Bubble::Bubble(Presenter* scene, const QPointF &position, qreal radius, const QPointF &velocity)
+    : model(scene->model, Coords2D(position.x(), position.y()),
+                  radius, Coords2D(velocity.x(), velocity.y())),
+      newPos(position),
+      radius(radius)
 {
     setFlag(ItemIsMovable);
-//    setFlag(ItemSendsScenePositionChanges);
+    setFlag(ItemSendsScenePositionChanges);
     setCacheMode(DeviceCoordinateCache);
 
     innerColor = randomColor();
     outerColor = randomColor();
     updateBrush();
-}
 
+    setPos(position);
+}
 
 void Bubble::updateBrush()
 {
@@ -61,17 +65,26 @@ QColor Bubble::randomColor()
 
 void Bubble::advance(int phase)
 {
-    if (!phase) {
-        QRectF sceneRect = scene()->sceneRect();
-        QPointF newPos = mapToScene(vel*STEP);
-        if (   (newPos.x() - radius < sceneRect.left() && vel.x() < 0)
-            || (newPos.x() + radius > sceneRect.right() && vel.x() > 0) )
-            vel.setX(-vel.x());
-        if (   (newPos.y() - radius < sceneRect.top() && vel.y() < 0)
-            || (newPos.y() + radius > sceneRect.bottom() && vel.y() > 0) )
-            vel.setY(-vel.y());
-    } else {
-        moveBy(vel.x()*STEP,vel.y()*STEP);
+    if (phase) {
+        setPos(newPos);
+    } else { //Check if bubble is escaping the scene
+        QRectF bounds = scene()->sceneRect();
+        Coords2D velocity = model.getVel();
+        newPos = scenePos();
+        newPos.rx() += velocity.x*STEP;
+        newPos.ry() += velocity.y*STEP;
+        if (   (newPos.x() - radius < bounds.left() && velocity.x < 0)
+            || (newPos.x() + radius > bounds.right() && velocity.x > 0) ) {
+            velocity.x = -velocity.x;
+            newPos.rx() += 2*velocity.x*STEP;
+        }
+        if (   (newPos.y() - radius < bounds.top() && velocity.y < 0)
+            || (newPos.y() + radius > bounds.bottom() && velocity.y > 0) ) {
+            velocity.y = -velocity.y;
+            newPos.ry() += 2*velocity.y*STEP;
+        }
+        model.setPos(Coords2D(newPos.x(), newPos.y()));
+        model.setVel(velocity);
     }
 }
 
@@ -87,11 +100,12 @@ QPainterPath Bubble::shape() const
     path.addEllipse(-radius, -radius,  2.0*radius, 2.0*radius);
     return path;
 }
-/*
+
 QVariant Bubble::itemChange(GraphicsItemChange change, const QVariant &value){
     if (change == ItemScenePositionHasChanged) {
-  //      qDebug() << this << value;
+        QPointF pos = value.toPointF();
+        model.setPos(Coords2D(pos.x(), pos.y()));
     }
     return QGraphicsItem::itemChange(change, value);
 }
-*/
+

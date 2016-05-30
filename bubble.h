@@ -15,28 +15,31 @@
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 
+#include "model.h"
+
 class QPainter;
+class Presenter;
 
 class Bubble  : public QGraphicsItem
 {
 public:
-    Bubble(qreal radius, const QPointF &velocity);
+    Bubble(Presenter* scene, const QPointF &position, qreal radius, const QPointF &velocity);
 
     int type() const { return UserType + 1; }
     QRectF boundingRect() const;
     QPainterPath shape() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-//    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
     void advance(int);
 
 private:
     void updateBrush();
     QColor randomColor();
 
-    qreal radius;
-    QPointF vel;
-    QPointF acc;
+    BubbleModel model;
+    mutable QPointF newPos;
 
+    qreal radius;
     QBrush brush;
     QColor innerColor;
     QColor outerColor;

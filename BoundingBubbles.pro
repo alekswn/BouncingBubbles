@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-CONFIG += c++11
+CONFIG += c++14
 QT       += core gui opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -14,18 +14,17 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-    sharedlist.cpp \
     model.cpp \
     presenter.cpp \
     bubble.cpp \
     view.cpp
 
 HEADERS  += \
-    sharedlist.h \
     model.h \
     presenter.h \
     bubble.h \
-    view.h
+    view.h \
+    utils.h
 
 FORMS    +=
 
